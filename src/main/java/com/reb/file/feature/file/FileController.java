@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Objects;
+
 @RestController
 @RequestMapping("/file")
 public class FileController {
@@ -21,15 +23,33 @@ public class FileController {
         return ResponseEntity.ok(res);
     }
 
-    @GetMapping("/{file}")
-    public ResponseEntity<?> downloadFile(@PathVariable ObjectId id,@RequestParam(defaultValue = "uuid") String uuid) {
-        FileDto source = fileService.getFile(id, uuid);
-        return ResponseEntity
-                .ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .contentLength(source.getSize())
-                .header("Content-disposition", "attachment; filename=" + source.getName())
-                .body(source.getStream());
+    @GetMapping("/{id}")
+    public ResponseEntity<?> downloadFile(@PathVariable ObjectId id, @RequestParam String uuid) {
+        ResponseMessage source = fileService.getFile(id, uuid);
+
+        if (Objects.nonNull(source) && Objects.nonNull(source.getData())) {
+            try {
+                Integer code = source.getCode();
+                if (code == 0) {
+                    return ResponseEntity.ok(new ResponseMessage(0, source.getMessage()));
+                }
+
+                FileDownloadResponseDto dto = (FileDownloadResponseDto) source.getData();
+                return ResponseEntity
+                        .ok()
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .contentLength(dto.getSize())
+                        .header("Content-disposition", "attachment; filename=" + dto.getName())
+                        .body(dto.getStream());
+            }catch (Exception e){
+                return ResponseEntity.ok(new ResponseMessage(0, "Failed to download file"));
+            }
+
+        }else{
+            return ResponseEntity.ok(new ResponseMessage(0, "File not found"));
+        }
+
+
     }
 
 

@@ -1,9 +1,6 @@
 package com.reb.file.comon.minio;
 
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.StatObjectArgs;
-import io.minio.StatObjectResponse;
+import io.minio.*;
 import io.minio.errors.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,5 +39,13 @@ public class MinioServiceImpl implements MinioService {
                 .object(path.toString())
                 .build();
         return minioClient.statObject(args);
+    }
+
+    public InputStream get(Path path) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        GetObjectArgs args = GetObjectArgs.builder()
+                .bucket(bucket)
+                .object(path.toString())
+                .build();
+        return minioClient.getObject(args);
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface FileService {
     ResponseMessage save(MultipartFile file);
 
-    FileDto getFile(ObjectId id, String uuid);
+    ResponseMessage getFile(ObjectId id, String uuid);
 
     ResponseMessage deleteById(ObjectId id);
 }

@@ -2,12 +2,16 @@ package com.reb.file.feature.file;
 
 import com.reb.file.comon.dto.ResponseMessage;
 import com.reb.file.comon.minio.MinioService;
+import io.minio.StatObjectResponse;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -45,10 +49,12 @@ public class FileServiceImpl implements FileService {
             fileRepository.save(fileEntity);
 
             ResponseMessage res = new ResponseMessage(1, "Save file success");
-            FileDto dto = new FileDto();
+            FileUploadResponseDto dto = new FileUploadResponseDto();
             dto.setName(file.getOriginalFilename());
             dto.setSize(file.getSize());
             dto.setType(file.getContentType());
+            dto.setUuid(uuid);
+            dto.setId(fileEntity.getId());
 
             res.setData(dto);
             return res;
@@ -61,8 +67,35 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public FileDto getFile(ObjectId id, String uuid) {
-        return null;
+    public ResponseMessage getFile(ObjectId id, String uuid) {
+        File file = fileRepository.findActiveByIdAndUuid(id, uuid).orElse(null);
+        if(Objects.nonNull(file)){
+            try {
+                Path path = Path.of(file.getUniqueFilename());
+
+                try {
+                    StatObjectResponse metadata =  minioService.getMetadata(path.toString());
+                    InputStream inputStream = minioService.get(path);
+                    InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
+                    ResponseMessage res = new ResponseMessage(1, "File found");
+                    FileDownloadResponseDto fileDownloadResponseDto = new FileDownloadResponseDto();
+                    fileDownloadResponseDto.setName(file.getName());
+                    fileDownloadResponseDto.setSize(file.getSize());
+                    fileDownloadResponseDto.setStream(inputStreamResource);
+                    fileDownloadResponseDto.setType(file.getType());
+                    res.setData(fileDownloadResponseDto);
+                    return res;
+
+                } catch (Exception e) {
+                    return new ResponseMessage(0, "Failed to upload file to Minio: " + e.getMessage());
+                }
+
+
+            } catch (Exception e) {
+                return new ResponseMessage(0, "Failed to download file");
+            }
+        }
+        return new ResponseMessage(0, "File not found");
     }
 
     @Override

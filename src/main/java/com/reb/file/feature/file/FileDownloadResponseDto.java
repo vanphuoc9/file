@@ -10,7 +10,7 @@ import org.springframework.core.io.InputStreamResource;
 import java.time.LocalDateTime;
 
 @Data
-public class FileDto {
+public class FileDownloadResponseDto {
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
     private String uuid;
