@@ -1,4 +1,4 @@
-package com.reb.file.audit;
+package com.reb.file.comon.audit;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,6 +6,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -19,5 +20,5 @@ public class Audit {
 
     private String createdBy;
     private String updatedBy;
-    private String uuid;
+
 }
