@@ -10,7 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
-import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -28,13 +29,16 @@ public class FileServiceImpl implements FileService {
         String uuid = UUID.randomUUID().toString();
         String uniqueFilename = uuid + "_" + file.getOriginalFilename();
 
-        Path path = Path.of(uniqueFilename);
+        String currentDate = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        // Append date to the file path
+        String path = currentDate + "/" + uniqueFilename;
+        //Path path = Path.of(datedPath);
         try {
             minioService.uploadFile(path, file.getInputStream(), file.getContentType());
 
             // Check if the file was uploaded successfully
             try {
-                minioService.getMetadata(path.toString());
+                minioService.getMetadata(path);
             } catch (Exception e) {
                 return new ResponseMessage(0, "Failed to upload file to Minio: " + e.getMessage());
             }
@@ -42,7 +46,7 @@ public class FileServiceImpl implements FileService {
             File fileEntity = new File();
             fileEntity.setName(file.getOriginalFilename());
             fileEntity.setSize(file.getSize());
-            fileEntity.setPath(path.toString());
+            fileEntity.setPath(path);
             fileEntity.setType(file.getContentType());
             fileEntity.setUniqueFilename(uniqueFilename);
             fileEntity.setUuid(uuid);
@@ -71,10 +75,10 @@ public class FileServiceImpl implements FileService {
         File file = fileRepository.findActiveByIdAndUuid(id, uuid).orElse(null);
         if(Objects.nonNull(file)){
             try {
-                Path path = Path.of(file.getUniqueFilename());
+                String path = file.getPath();
 
                 try {
-                    StatObjectResponse metadata =  minioService.getMetadata(path.toString());
+                    StatObjectResponse metadata =  minioService.getMetadata(path);
                     InputStream inputStream = minioService.get(path);
                     InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
                     ResponseMessage res = new ResponseMessage(1, "File found");

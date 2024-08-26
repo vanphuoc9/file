@@ -33,6 +33,17 @@ public class MinioServiceImpl implements MinioService {
     }
 
     @Override
+    public void uploadFile(String path, InputStream file, String contentType) throws IOException, ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        PutObjectArgs args = PutObjectArgs.builder()
+                .bucket(bucket)
+                .object(path)
+                .stream(file, file.available(), -1)
+                .contentType(contentType)
+                .build();
+        minioClient.putObject(args);
+    }
+
+    @Override
     public StatObjectResponse getMetadata(String path) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         StatObjectArgs args = StatObjectArgs.builder()
                 .bucket(bucket)
@@ -45,6 +56,14 @@ public class MinioServiceImpl implements MinioService {
         GetObjectArgs args = GetObjectArgs.builder()
                 .bucket(bucket)
                 .object(path.toString())
+                .build();
+        return minioClient.getObject(args);
+    }
+
+    public InputStream get(String path) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        GetObjectArgs args = GetObjectArgs.builder()
+                .bucket(bucket)
+                .object(path)
                 .build();
         return minioClient.getObject(args);
     }
