@@ -5,6 +5,7 @@ import com.reb.file.comon.minio.MinioService;
 import io.minio.StatObjectResponse;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +24,9 @@ public class FileServiceImpl implements FileService {
 
     @Autowired
     private MinioService minioService;
+
+    @Value("${minio.bucket}")
+    private String bucket;
 
     @Override
     public ResponseMessage save(MultipartFile file) {
@@ -50,6 +54,7 @@ public class FileServiceImpl implements FileService {
             fileEntity.setType(file.getContentType());
             fileEntity.setUniqueFilename(uniqueFilename);
             fileEntity.setUuid(uuid);
+            fileEntity.setBucket(bucket);
             fileRepository.save(fileEntity);
 
             ResponseMessage res = new ResponseMessage(1, "Save file success");
@@ -76,10 +81,11 @@ public class FileServiceImpl implements FileService {
         if(Objects.nonNull(file)){
             try {
                 String path = file.getPath();
+                String bucket = file.getBucket();
 
                 try {
-                    StatObjectResponse metadata =  minioService.getMetadata(path);
-                    InputStream inputStream = minioService.get(path);
+                    StatObjectResponse metadata =  minioService.getMetadata(path, bucket);
+                    InputStream inputStream = minioService.get(path, bucket);
                     InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
                     ResponseMessage res = new ResponseMessage(1, "File found");
                     FileDownloadResponseDto fileDownloadResponseDto = new FileDownloadResponseDto();

@@ -16,6 +16,7 @@ public class File {
     private String path;
     private Long size;
     private String type;
+    private String bucket;
 
     private String uuid;
     private Audit audit = new Audit();
