@@ -4,6 +4,7 @@ import com.reb.file.comon.dto.ResponseMessage;
 import com.reb.file.comon.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -26,6 +27,15 @@ public class FileController {
     private FileService fileService;
 
     @Operation(summary = "Upload multiple files")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Upload file", content = @Content(
+                    array = @ArraySchema(schema = @Schema(implementation = ResponseMessage.class)),
+                    mediaType = "application/json")),
+
+            @ApiResponse(responseCode = "404", description = "File not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+    })
     @PostMapping("/--multiple")
     public ResponseEntity<?> uploadFiles(@RequestPart("files") MultipartFile[] files) {
         List<ResponseMessage> res = fileService.saveFiles(files);
@@ -35,7 +45,7 @@ public class FileController {
 
     @Operation(summary = "Upload file")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Upload file", content = @Content(schema = @Schema(implementation = ResponseMessage.class))),
+            @ApiResponse(responseCode = "200", description = "Upload file", content = @Content(schema = @Schema(implementation = ResponseMessage.class), mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "File not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
