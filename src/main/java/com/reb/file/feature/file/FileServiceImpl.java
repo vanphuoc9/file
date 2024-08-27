@@ -1,5 +1,6 @@
 package com.reb.file.feature.file;
 
+import com.reb.file.comon.audit.Audit;
 import com.reb.file.comon.dto.ResponseMessage;
 import com.reb.file.comon.minio.MinioService;
 import io.minio.StatObjectResponse;
@@ -110,6 +111,14 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public ResponseMessage deleteById(ObjectId id) {
-        return null;
+        File entity = fileRepository.findById(id).orElse(null);
+        if (Objects.nonNull(entity)) {
+            Audit audit = entity.getAudit();
+            audit.setIsActive(0);
+            entity.setAudit(audit);
+            fileRepository.save(entity);
+            return new ResponseMessage(1, "File deleted successfully");
+        }
+        return new ResponseMessage(0, "File not found");
     }
 }

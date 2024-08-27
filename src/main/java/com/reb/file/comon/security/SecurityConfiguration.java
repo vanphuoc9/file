@@ -18,7 +18,7 @@ public class SecurityConfiguration {
         http.cors(withDefaults())
 
                 .authorizeHttpRequests((authz) ->  authz
-                        .requestMatchers("/public/**").permitAll()
+                        .requestMatchers("/file/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(withDefaults()));
         return http.build();
