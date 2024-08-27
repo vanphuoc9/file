@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -18,8 +19,15 @@ public class FileController {
     @Autowired
     private FileService fileService;
 
+    @PostMapping("/--multiple")
+    public ResponseEntity<?> uploadFiles(@RequestPart("files") MultipartFile[] files) {
+        List<ResponseMessage> res = fileService.saveFiles(files);
+        return ResponseEntity.ok(res);
+    }
+
+
     @PostMapping
-    public ResponseEntity<?> create(@RequestPart("file") MultipartFile file) {
+    public ResponseEntity<?>  uploadFile(@RequestPart("file") MultipartFile file) {
         ResponseMessage res = fileService.save(file);
         return ResponseEntity.ok(res);
     }

@@ -14,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -33,11 +35,8 @@ public class FileServiceImpl implements FileService {
     public ResponseMessage save(MultipartFile file) {
         String uuid = UUID.randomUUID().toString();
         String uniqueFilename = uuid + "_" + file.getOriginalFilename();
-
         String currentDate = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        // Append date to the file path
         String path = currentDate + "/" + uniqueFilename;
-        //Path path = Path.of(datedPath);
         try {
             minioService.uploadFile(path, file.getInputStream(), file.getContentType());
 
@@ -45,7 +44,11 @@ public class FileServiceImpl implements FileService {
             try {
                 minioService.getMetadata(path);
             } catch (Exception e) {
-                return new ResponseMessage(0, "Failed to upload file to Minio: " + e.getMessage());
+                ResponseMessage res = new ResponseMessage(0, "Failed to upload file to Minio: " + e.getMessage());
+                FileUploadResponseDto dto = new FileUploadResponseDto();
+                dto.setName(file.getOriginalFilename());
+                res.setData(dto);
+                return res;
             }
 
             File fileEntity = new File();
@@ -70,10 +73,29 @@ public class FileServiceImpl implements FileService {
             return res;
         }  catch (Exception e) {
             e.printStackTrace();
-            return new ResponseMessage(0, "Failed to save file");
+            ResponseMessage res = new ResponseMessage(0, "Failed to save file: " + e.getMessage());
+            FileUploadResponseDto dto = new FileUploadResponseDto();
+            dto.setName(file.getOriginalFilename());
+            res.setData(dto);
+            return res;
         }
 
 
+    }
+
+    @Override
+    public List<ResponseMessage> saveFiles(MultipartFile[] files) {
+        List<ResponseMessage> responses = new ArrayList<>();
+        for(MultipartFile file : files){
+            ResponseMessage res = save(file);
+            responses.add(res);
+        }
+
+        if(responses.isEmpty()){
+            responses.add(new ResponseMessage(0, "Upload multiple files failed"));
+        }
+
+        return responses;
     }
 
     @Override
@@ -121,4 +143,6 @@ public class FileServiceImpl implements FileService {
         }
         return new ResponseMessage(0, "File not found");
     }
+
+
 }
