@@ -55,7 +55,7 @@ public class FileController {
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
     })
-    @PostMapping
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?>  uploadFile(@RequestPart("file") MultipartFile file) {
         ResponseMessage res = fileService.save(file);
         return ResponseEntity.ok(res);
