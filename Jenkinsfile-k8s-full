@@ -19,8 +19,8 @@ pipeline {
     }
 
     parameters {
-        string(name: 'GIT_URL', defaultValue: ${appConfigRepo}, description: 'The URL of the source Git repository to use.')
-        string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'The branch in the source Git repository to use.')
+        string(name: 'GIT_URL', defaultValue: "${appConfigRepo}", description: 'The URL of the source Git repository to use.')
+        string(name: 'GIT_BRANCH', defaultValue: "${appConfigBranch}" , description: 'The branch in the source Git repository to use.')
     }
 
     stages {
