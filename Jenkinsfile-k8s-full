@@ -1,0 +1,80 @@
+def appConfigRepo = 'https://github.com/vanphuoc9/file.git'
+def appConfigBranch = 'master'
+
+def helmRepo = "file-config"
+def helmValueFile = "values.yaml"
+
+pipeline {
+    agent any
+
+    environment {
+        BUILD_NUMBER = "${env.BUILD_NUMBER}"
+        version = "v1.${BUILD_NUMBER}"
+        DOCKER_IMAGE_NAME = "thaiphuoc1997/svcfile"
+        DOCKER_IMAGE = "${DOCKER_IMAGE_NAME}:${version}"
+    }
+
+    options {
+        skipDefaultCheckout()
+    }
+
+    parameters {
+        string(name: 'GIT_URL', defaultValue: ${appConfigRepo}, description: 'The URL of the source Git repository to use.')
+        string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'The branch in the source Git repository to use.')
+    }
+
+    stages {
+        stage("Checkout") {
+            steps {
+                checkout(changelog: false, poll: false, scm: [
+                    $class: 'GitSCM',
+                    branches: [[name: params.GIT_BRANCH]],
+                    doGenerateSubmoduleConfigurations: false,
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[url: params.GIT_URL]],
+                ])
+                stash name: 'sources', includes: '**', excludes: '**/.git,**/.git/**'
+            }
+        }
+
+        stage("Build And Push Docker Image") {
+            agent {
+                label 'docker-build'
+            }
+            steps {
+                unstash 'sources'
+                container(name: 'kaniko') {
+                    sh '/kaniko/executor --context=`pwd` --dockerfile=`pwd`/Dockerfile --destination=${DOCKER_IMAGE}'
+                }
+            }
+        }
+
+        // stage('Update version in helm-chart') {
+        //     steps {
+        //         withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+        //             sh """#!/bin/bash
+        //                 set -e
+
+        //                 [[ -d ${helmRepo} ]] && rm -rf ${helmRepo}
+
+        //                 git clone ${appConfigRepo} --branch ${appConfigBranch}
+        //                 cd ${helmRepo}
+
+        //                 # Cập nhật tag với version
+        //                 sed -i "s|  tag: .*|  tag: \\\"${version}\\\"|" ${helmValueFile}
+
+        //                 git config user.name "vanphuoc9"
+        //                 git config user.email "thaiphuoc1997@gmail.com"
+
+        //                 git add .
+        //                 git commit -m "Update to version ${version}" || echo "No changes to commit"
+        //                 git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/vanphuoc9/complete-prodcution-e2e-pipeline-config.git
+
+        //                 cd ..
+        //                 rm -rf ${helmRepo}
+        //             """
+        //         }
+        //     }
+        // }
+    }
+}
