@@ -19,7 +19,8 @@ public class SecurityConfiguration {
             "/swagger-ui/**",
             "/swagger-resources/**",
             "/swagger-resources",
-            "/swagger-ui.html"
+            "/swagger-ui.html",
+            "/actuator/health"
     };
 
 
