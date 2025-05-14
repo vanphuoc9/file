@@ -1,5 +1,5 @@
-def appConfigRepo = 'https://github.com/vanphuoc9/file.git'
-def appConfigBranch = 'master'
+def appConfigRepo = 'https://github.com/vanphuoc9/file-config.git'
+def appConfigBranch = 'main'
 
 def helmRepo = "file-config"
 def helmValueFile = "values.yaml"
@@ -19,8 +19,8 @@ pipeline {
     }
 
     parameters {
-        string(name: 'GIT_URL', defaultValue: "${appConfigRepo}", description: 'The URL of the source Git repository to use.')
-        string(name: 'GIT_BRANCH', defaultValue: "${appConfigBranch}" , description: 'The branch in the source Git repository to use.')
+        string(name: 'GIT_URL', defaultValue: 'https://github.com/vanphuoc9/file.git', description: 'The URL of the source Git repository to use.')
+        string(name: 'GIT_BRANCH', defaultValue: 'master' , description: 'The branch in the source Git repository to use.')
     }
 
     stages {
@@ -68,7 +68,7 @@ pipeline {
 
         //                 git add .
         //                 git commit -m "Update to version ${version}" || echo "No changes to commit"
-        //                 git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/vanphuoc9/complete-prodcution-e2e-pipeline-config.git
+        //                 git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/vanphuoc9/file-config.git
 
         //                 cd ..
         //                 rm -rf ${helmRepo}
